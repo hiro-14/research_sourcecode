@@ -1,4 +1,14 @@
-# OpenPose binaries / packages (do not version)
-openpose/
+# ===== OpenPose =====
+openpose/**
+
+# 例外：ドキュメントとスクリプトは管理する
+!openpose/docs/
+!openpose/docs/**
+!openpose/scripts/
+!openpose/scripts/**
+!openpose/.gitkeep
+
+# バイナリ系は全面禁止
 *.dll
+*.exe
 *.zip
