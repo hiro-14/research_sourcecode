@@ -1,0 +1,4 @@
+# OpenPose binaries / packages (do not version)
+openpose/
+*.dll
+*.zip
