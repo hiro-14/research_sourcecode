@@ -99,6 +99,13 @@ def load_p_matrices(path: Path) -> np.ndarray:
     return arr
 
 
+def resolve_path(path_str: str, base_dir: Path) -> Path:
+    p = Path(path_str).expanduser()
+    if not p.is_absolute():
+        p = base_dir / p
+    return p.resolve()
+
+
 def load_pose_from_json(json_path: Path, person_index: int) -> Tuple[np.ndarray, np.ndarray]:
     data = json.loads(json_path.read_text(encoding="utf-8"))
     people = data.get("people", [])
@@ -262,19 +269,21 @@ def main() -> None:
     ap.add_argument("--views", nargs=4, required=True, help="4 view directories of OpenPose JSONs")
     ap.add_argument("--p-mats", required=True, help="Path to P matrices (JSON/NPY 4x3x4 or directory of 4 CSVs)")
     ap.add_argument("--out-dir", required=True, help="Output directory")
+    ap.add_argument("--base-dir", default=".", help="Base directory for relative paths")
     ap.add_argument("--fps", type=float, default=30.0, help="Video FPS")
     ap.add_argument("--person-index", type=int, default=0, help="Person index in OpenPose JSON")
     ap.add_argument("--conf-thresh", type=float, default=0.2, help="Min 2D confidence to use")
     ap.add_argument("--smooth", type=int, default=5, help="Moving average window (frames)")
     args = ap.parse_args()
 
-    view_dirs = [Path(v) for v in args.views]
+    base_dir = resolve_path(args.base_dir, Path.cwd())
+    view_dirs = [resolve_path(v, base_dir) for v in args.views]
     for d in view_dirs:
         if not d.is_dir():
             raise FileNotFoundError(f"View dir not found: {d}")
 
-    p_mats = load_p_matrices(Path(args.p_mats))
-    out_dir = Path(args.out_dir)
+    p_mats = load_p_matrices(resolve_path(args.p_mats, base_dir))
+    out_dir = resolve_path(args.out_dir, base_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     json_files = sorted(view_dirs[0].glob("*.json"))
